@@ -1,0 +1,80 @@
+from numpy import *
+import pandas as pd
+path = 'G:\AI\data\ALL2.csv'
+path1 = 'TEST.csv'
+arr = pd.read_csv(path)
+def kNNClassify(newInput, dataSet, labels, k):
+    numSamples = dataSet.shape[0]  # shape[0] stands for the num of row
+
+    ## step 1: calculate Euclidean distance
+    # tile(A, reps): Construct an array by repeating A reps times
+    # the following copy numSamples rows for dataSet
+    diff = tile(newInput, (numSamples, 1)) - dataSet  # Subtract element-wise
+    squaredDiff = diff ** 2  # squared for the subtract
+    squaredDist = sum(squaredDiff, axis=1)  # sum is performed by row
+    distance = squaredDist ** 0.5
+
+    ## step 2: sort the distance
+    # argsort() returns the indices that would sort an array in a ascending order
+    sortedDistIndices = argsort(distance)
+
+    classCount = {}  # define a dictionary (can be append element)
+    for i in range(k):
+        ## step 3: choose the min k distance
+        voteLabel = labels[sortedDistIndices[i]]
+
+        ## step 4: count the times labels occur
+        # when the key voteLabel is not in dictionary classCount, get()
+        # will return 0
+        classCount[voteLabel] = classCount.get(voteLabel, 0) + 1
+
+        ## step 5: the max voted class will return
+    maxCount = 0
+    for key, value in classCount.items():
+        if value > maxCount:
+            maxCount = value
+            maxIndex = key
+
+    return maxIndex
+for myk in range(3, 50, 2):
+    l = []
+    for i in range(0, arr.shape[0]):
+        results = []
+        for j in range(0, arr.shape[1]-1):
+            inX = [j, arr[str(j)][i]]
+            dataset = []
+            label = list(arr['class'])
+            del label[i]
+            for k in range(0, arr.shape[0]):
+                dataset.append([j, arr[str(j)][k]])
+                pass
+            dataset.remove([j, arr[str(j)][i]])
+
+            c1 = kNNClassify(inX, array(dataset), list(label), myk)
+            results.append(c1)
+        l.append(results)
+    print(l)
+    A_true = [0]*(arr.shape[1]-1)
+    A_false= [0]*(arr.shape[1]-1)
+    B_true = [0]*(arr.shape[1]-1)
+    B_false = [0]*(arr.shape[1]-1)
+    classLabel = list(arr['class'])
+    for m in range(0,len(classLabel)):
+        for n in range(0,len(l[0])):
+            if classLabel[m]=='A':
+                if l[m][n]=='A':
+                    A_true[n] += 1
+                elif l[m][n]=='B':
+                    A_false[n] += 1
+            if classLabel[m]=='B':
+                if l[m][n]=='B':
+                    B_true[n] += 1
+                elif l[m][n]=='A':
+                    B_false[n] += 1
+    AC = []
+    for ui in range(0, len(A_true)):
+        ac = float(A_true[ui]+B_true[ui])/2408
+        AC.append(ac)
+    se = pd.Series(AC)
+    se.to_csv(str(myk)+'ac.csv')
+    break
